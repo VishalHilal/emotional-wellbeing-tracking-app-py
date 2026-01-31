@@ -29,50 +29,99 @@ def emotion_entries(request):
         return Response(serializer.data)
     
     elif request.method == 'POST':
-        serializer = EmotionEntrySerializer(data=request.data)
-        if serializer.is_valid():
-            # Save the entry first
-            entry = serializer.save(user=request.user)
+            # Check if entry already exists for today
+            today = timezone.now().date()
+            existing_entry = EmotionEntry.objects.filter(user=request.user, date=today).first()
             
-            # Get ML prediction
-            predictor = EmotionRiskPredictor()
-            emotion_data = {
-                'mood': entry.mood,
-                'anxiety_level': entry.anxiety_level,
-                'sleep_hours': entry.sleep_hours,
-                'energy_level': entry.energy_level,
-                'appetite': entry.appetite,
-            }
-            
-            prediction = predictor.predict_risk(
-                emotion_data, 
-                entry.journal_text or ""
-            )
-            
-            # Update entry with prediction
-            entry.risk_score = prediction['risk_score']
-            entry.risk_category = prediction['risk_category']
-            entry.save()
-            
-            # Create or update risk assessment
-            risk_assessment, created = RiskAssessment.objects.update_or_create(
-                user=request.user,
-                date=entry.date,
-                defaults={
-                    'risk_category': prediction['risk_category'],
-                    'risk_score': prediction['risk_score'],
-                    'contributing_factors': prediction['contributing_factors'],
-                    'recommendations': prediction['recommendations']
-                }
-            )
-            
-            # Return updated entry with predictions
-            response_data = EmotionEntrySerializer(entry).data
-            response_data['recommendations'] = prediction['recommendations']
-            
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if existing_entry:
+                # Update existing entry
+                serializer = EmotionEntrySerializer(existing_entry, data=request.data, partial=True)
+                if serializer.is_valid():
+                    updated_entry = serializer.save()
+                    
+                    # Get ML prediction
+                    predictor = EmotionRiskPredictor()
+                    emotion_data = {
+                        'mood': updated_entry.mood,
+                        'anxiety_level': updated_entry.anxiety_level,
+                        'sleep_hours': updated_entry.sleep_hours,
+                        'energy_level': updated_entry.energy_level,
+                        'appetite': updated_entry.appetite,
+                    }
+                    
+                    prediction = predictor.predict_risk(
+                        emotion_data, 
+                        updated_entry.journal_text or ""
+                    )
+                    
+                    # Update entry with new prediction
+                    updated_entry.risk_score = prediction['risk_score']
+                    updated_entry.risk_category = prediction['risk_category']
+                    updated_entry.save()
+                    
+                    # Update risk assessment
+                    RiskAssessment.objects.update_or_create(
+                        user=request.user,
+                        date=updated_entry.date,
+                        defaults={
+                            'risk_category': prediction['risk_category'],
+                            'risk_score': prediction['risk_score'],
+                            'contributing_factors': prediction['contributing_factors'],
+                            'recommendations': prediction['recommendations']
+                        }
+                    )
+                    
+                    response_data = EmotionEntrySerializer(updated_entry).data
+                    response_data['recommendations'] = prediction['recommendations']
+                    
+                    return Response(response_data, status=status.HTTP_200_OK)
+                
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Create new entry
+                serializer = EmotionEntrySerializer(data=request.data)
+                if serializer.is_valid():
+                    entry = serializer.save(user=request.user)
+                    
+                    # Get ML prediction
+                    predictor = EmotionRiskPredictor()
+                    emotion_data = {
+                        'mood': entry.mood,
+                        'anxiety_level': entry.anxiety_level,
+                        'sleep_hours': entry.sleep_hours,
+                        'energy_level': entry.energy_level,
+                        'appetite': entry.appetite,
+                    }
+                    
+                    prediction = predictor.predict_risk(
+                        emotion_data, 
+                        entry.journal_text or ""
+                    )
+                    
+                    # Update entry with prediction
+                    entry.risk_score = prediction['risk_score']
+                    entry.risk_category = prediction['risk_category']
+                    entry.save()
+                    
+                    # Create or update risk assessment
+                    risk_assessment, created = RiskAssessment.objects.update_or_create(
+                        user=request.user,
+                        date=entry.date,
+                        defaults={
+                            'risk_category': prediction['risk_category'],
+                            'risk_score': prediction['risk_score'],
+                            'contributing_factors': prediction['contributing_factors'],
+                            'recommendations': prediction['recommendations']
+                        }
+                    )
+                    
+                    # Return updated entry with predictions
+                    response_data = EmotionEntrySerializer(entry).data
+                    response_data['recommendations'] = prediction['recommendations']
+                    
+                    return Response(response_data, status=status.HTTP_201_CREATED)
+                
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
