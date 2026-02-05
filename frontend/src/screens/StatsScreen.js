@@ -4,20 +4,21 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import {
   Card,
   Title,
-  Paragraph,
   Text,
   Chip,
   Button,
   DataTable,
 } from 'react-native-paper';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
+import { LineChart, PieChart } from 'react-native-chart-kit';
+import LinearGradient from 'react-native-linear-gradient';
 import { emotionAPI } from '../api/api';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const StatsScreen = ({ navigation }) => {
   const [stats, setStats] = useState(null);
@@ -26,380 +27,250 @@ const StatsScreen = ({ navigation }) => {
   const [timeRange, setTimeRange] = useState(30);
 
   useEffect(() => {
-    loadStats();
-    loadEntries();
+    fetchData();
   }, [timeRange]);
 
-  const loadStats = async () => {
-    try {
-      const data = await emotionAPI.getStats(timeRange);
-      setStats(data);
-    } catch (error) {
-      console.error('Error loading stats:', error);
-    }
+  const fetchData = async () => {
+    setLoading(true);
+    const s = await emotionAPI.getStats(timeRange);
+    const e = await emotionAPI.getEntries(timeRange);
+    setStats(s);
+    setEntries(e);
+    setLoading(false);
   };
 
-  const loadEntries = async () => {
-    try {
-      const data = await emotionAPI.getEntries(timeRange);
-      setEntries(data);
-    } catch (error) {
-      console.error('Error loading entries:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getMoodColor = (mood) => ({
+    happy: '#4CAF50',
+    sad: '#2196F3',
+    angry: '#F44336',
+    anxious: '#FF9800',
+    neutral: '#9E9E9E',
+  }[mood] || '#9E9E9E');
 
-  const getMoodColor = (mood) => {
-    const colors = {
-      happy: '#4CAF50',
-      sad: '#2196F3',
-      angry: '#F44336',
-      anxious: '#FF9800',
-      neutral: '#9E9E9E',
-    };
-    return colors[mood] || '#9E9E9E';
-  };
+  const getRiskColor = (risk) => ({
+    low: '#4CAF50',
+    moderate: '#FF9800',
+    high: '#F44336',
+  }[risk] || '#9E9E9E');
 
-  const getRiskColor = (category) => {
-    switch (category) {
-      case 'low': return '#4CAF50';
-      case 'moderate': return '#FF9800';
-      case 'high': return '#F44336';
-      default: return '#9E9E9E';
-    }
-  };
+  const moodData = stats?.mood_distribution
+    ? Object.entries(stats.mood_distribution).map(([key, val]) => ({
+        name: key,
+        population: val,
+        color: getMoodColor(key),
+        legendFontColor: '#333',
+        legendFontSize: 12,
+      }))
+    : [];
 
-  const prepareMoodDistribution = () => {
-    if (!stats?.mood_distribution) return [];
-    
-    return Object.entries(stats.mood_distribution).map(([mood, count]) => ({
-      name: mood.charAt(0).toUpperCase() + mood.slice(1),
-      population: count,
-      color: getMoodColor(mood),
-      legendFontColor: '#333',
-      legendFontSize: 12,
-    }));
-  };
-
-  const prepareRiskTrend = () => {
-    if (!stats?.risk_trend) return { labels: [], datasets: [] };
-    
-    const labels = stats.risk_trend.map(item => {
-      const date = new Date(item.date);
-      return date.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-    });
-    
-    const data = stats.risk_trend.map(item => (item.risk_score * 100).toFixed(1));
-    
-    return {
-      labels,
-      datasets: [
-        {
-          data,
-          color: (opacity = 1) => `rgba(98, 0, 238, ${opacity})`,
-          strokeWidth: 2,
-        },
-      ],
-    };
-  };
+  const riskTrend = stats?.risk_trend || [];
 
   const chartConfig = {
-    backgroundColor: '#ffffff',
-    backgroundGradientFrom: '#ffffff',
-    backgroundGradientTo: '#ffffff',
+    backgroundGradientFrom: '#fff',
+    backgroundGradientTo: '#fff',
     decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(98, 0, 238, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    style: {
-      borderRadius: 16,
-    },
-    propsForDots: {
-      r: '4',
-      strokeWidth: '2',
-      stroke: '#6200ee',
-    },
-  };
-
-  const pieChartConfig = {
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    color: (opacity = 1) => `rgba(99,102,241,${opacity})`,
+    labelColor: () => '#333',
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading statistics...</Text>
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#6366F1" />
+        <Text>Loading Stats...</Text>
       </View>
     );
   }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
-        {/* Time Range Selector */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Time Range</Title>
-            <View style={styles.timeRangeContainer}>
-              {[7, 30, 90].map((days) => (
-                <Chip
-                  key={days}
-                  style={[
-                    styles.timeChip,
-                    timeRange === days && styles.timeChipSelected,
-                  ]}
-                  textStyle={[
-                    styles.timeChipText,
-                    timeRange === days && styles.timeChipTextSelected,
-                  ]}
-                  onPress={() => setTimeRange(days)}
-                >
-                  {days === 7 ? '1 Week' : days === 30 ? '1 Month' : '3 Months'}
-                </Chip>
-              ))}
-            </View>
-          </Card.Content>
-        </Card>
+      
+      {/* Header */}
+      <Text style={styles.header}>📊 Emotion Analytics</Text>
 
-        {/* Summary Stats */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Summary Statistics</Title>
-            <View style={styles.statsGrid}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats?.avg_anxiety?.toFixed(1) || 0}</Text>
-                <Text style={styles.statLabel}>Avg Anxiety</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats?.avg_sleep?.toFixed(1) || 0}</Text>
-                <Text style={styles.statLabel}>Avg Sleep (hrs)</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats?.avg_energy?.toFixed(1) || 0}</Text>
-                <Text style={styles.statLabel}>Avg Energy</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>{stats?.avg_appetite?.toFixed(1) || 0}</Text>
-                <Text style={styles.statLabel}>Avg Appetite</Text>
-              </View>
-            </View>
-          </Card.Content>
-        </Card>
-
-        {/* Mood Distribution */}
-        {prepareMoodDistribution().length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Title>Mood Distribution</Title>
-              <PieChart
-                data={prepareMoodDistribution()}
-                width={screenWidth - 48}
-                height={220}
-                chartConfig={pieChartConfig}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="15"
-                center={[10, 10]}
-                absolute
-              />
-            </Card.Content>
-          </Card>
-        )}
-
-        {/* Risk Trend */}
-        {prepareRiskTrend().labels.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Title>Risk Score Trend</Title>
-              <LineChart
-                data={prepareRiskTrend()}
-                width={screenWidth - 48}
-                height={220}
-                chartConfig={chartConfig}
-                bezier
-                style={styles.chart}
-              />
-            </Card.Content>
-          </Card>
-        )}
-
-        {/* Recent Entries */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Recent Entries</Title>
-            {entries.length > 0 ? (
-              <DataTable>
-                <DataTable.Header>
-                  <DataTable.Title>Date</DataTable.Title>
-                  <DataTable.Title>Mood</DataTable.Title>
-                  <DataTable.Title numeric>Risk</DataTable.Title>
-                </DataTable.Header>
-
-                {entries.slice(0, 10).map((entry) => (
-                  <DataTable.Row key={entry.id}>
-                    <DataTable.Cell>
-                      {new Date(entry.date).toLocaleDateString()}
-                    </DataTable.Cell>
-                    <DataTable.Cell>
-                      <Chip
-                        style={[
-                          styles.moodChip,
-                          { backgroundColor: getMoodColor(entry.mood) }
-                        ]}
-                        textStyle={{ color: 'white', fontSize: 12 }}
-                      >
-                        {entry.mood}
-                      </Chip>
-                    </DataTable.Cell>
-                    <DataTable.Cell numeric>
-                      {entry.risk_category ? (
-                        <Chip
-                          style={[
-                            styles.riskChip,
-                            { backgroundColor: getRiskColor(entry.risk_category) }
-                          ]}
-                          textStyle={{ color: 'white', fontSize: 12 }}
-                        >
-                          {entry.risk_category}
-                        </Chip>
-                      ) : (
-                        '-'
-                      )}
-                    </DataTable.Cell>
-                  </DataTable.Row>
-                ))}
-              </DataTable>
-            ) : (
-              <Paragraph>No entries found for this time period.</Paragraph>
-            )}
-          </Card.Content>
-        </Card>
-
-        {/* Insights */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>Insights</Title>
-            {stats?.entries_count > 0 ? (
-              <View>
-                <Paragraph style={styles.insightText}>
-                  You've logged {stats.entries_count} entries in the selected period.
-                </Paragraph>
-                {stats.avg_sleep < 6 && (
-                  <Paragraph style={styles.insightText}>
-                    💤 Your average sleep is below 6 hours. Consider prioritizing rest.
-                  </Paragraph>
-                )}
-                {stats.avg_anxiety > 3 && (
-                  <Paragraph style={styles.insightText}>
-                    😰 Your anxiety levels are elevated. Try relaxation techniques.
-                  </Paragraph>
-                )}
-                {stats.avg_energy < 3 && (
-                  <Paragraph style={styles.insightText}>
-                    🔋 Your energy levels are low. Gentle exercise might help.
-                  </Paragraph>
-                )}
-              </View>
-            ) : (
-              <Paragraph>
-                Start logging your emotions to see personalized insights here.
-              </Paragraph>
-            )}
-          </Card.Content>
-        </Card>
-
-        {/* Action Button */}
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('EmotionEntry')}
-          style={styles.actionButton}
-        >
-          Log New Entry
-        </Button>
+      {/* Time Filter */}
+      <View style={styles.chipRow}>
+        {[7, 30, 90].map((day) => (
+          <Chip
+            key={day}
+            selected={timeRange === day}
+            onPress={() => setTimeRange(day)}
+            style={[
+              styles.chip,
+              timeRange === day && styles.chipActive,
+            ]}
+            textStyle={{ color: timeRange === day ? '#fff' : '#333' }}
+          >
+            {day === 7 ? '1W' : day === 30 ? '1M' : '3M'}
+          </Chip>
+        ))}
       </View>
+
+      {/* Summary Cards */}
+      <View style={styles.grid}>
+        {renderStat('Anxiety', stats.avg_anxiety)}
+        {renderStat('Sleep (hrs)', stats.avg_sleep)}
+        {renderStat('Energy', stats.avg_energy)}
+        {renderStat('Appetite', stats.avg_appetite)}
+      </View>
+
+      {/* Mood Chart */}
+      {moodData.length > 0 && (
+        <Card style={styles.card}>
+          <Title>Mood Distribution</Title>
+          <PieChart
+            data={moodData}
+            width={width - 40}
+            height={220}
+            chartConfig={chartConfig}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="10"
+            absolute
+          />
+        </Card>
+      )}
+
+      {/* Risk Trend */}
+      {riskTrend.length > 0 && (
+        <Card style={styles.card}>
+          <Title>Risk Trend</Title>
+          <LineChart
+            data={{
+              labels: riskTrend.map(i =>
+                new Date(i.date).toLocaleDateString('en', { day: 'numeric', month: 'short' })
+              ),
+              datasets: [{ data: riskTrend.map(i => i.risk_score * 100) }],
+            }}
+            width={width - 40}
+            height={220}
+            chartConfig={chartConfig}
+            bezier
+            style={{ borderRadius: 16 }}
+          />
+        </Card>
+      )}
+
+      {/* Recent Entries */}
+      <Card style={styles.card}>
+        <Title>Recent Entries</Title>
+        <DataTable>
+          <DataTable.Header>
+            <DataTable.Title>Date</DataTable.Title>
+            <DataTable.Title>Mood</DataTable.Title>
+            <DataTable.Title numeric>Risk</DataTable.Title>
+          </DataTable.Header>
+
+          {entries.slice(0, 8).map((e) => (
+            <DataTable.Row key={e.id}>
+              <DataTable.Cell>
+                {new Date(e.date).toLocaleDateString()}
+              </DataTable.Cell>
+              <DataTable.Cell>
+                <Chip style={{ backgroundColor: getMoodColor(e.mood) }} textStyle={{ color: '#fff' }}>
+                  {e.mood}
+                </Chip>
+              </DataTable.Cell>
+              <DataTable.Cell numeric>
+                <Chip style={{ backgroundColor: getRiskColor(e.risk_category) }} textStyle={{ color: '#fff' }}>
+                  {e.risk_category || '-'}
+                </Chip>
+              </DataTable.Cell>
+            </DataTable.Row>
+          ))}
+        </DataTable>
+      </Card>
+
+      {/* Insights */}
+      <Card style={styles.card}>
+        <Title>Insights</Title>
+        <Text style={styles.insight}>📌 Entries: {stats.entries_count}</Text>
+        {stats.avg_sleep < 6 && <Text>💤 Improve sleep habits</Text>}
+        {stats.avg_anxiety > 3 && <Text>😰 Try breathing exercises</Text>}
+        {stats.avg_energy < 3 && <Text>🔋 Light workout recommended</Text>}
+      </Card>
+
+      <Button
+        mode="contained"
+        onPress={() => navigation.navigate('EmotionEntry')}
+        style={styles.button}
+      >
+        Log New Entry
+      </Button>
+
     </ScrollView>
   );
 };
 
+const renderStat = (label, value) => (
+  <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.statCard}>
+    <Text style={styles.statValue}>{value?.toFixed(1) || 0}</Text>
+    <Text style={styles.statLabel}>{label}</Text>
+  </LinearGradient>
+);
+
+export default StatsScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
+    backgroundColor: '#F4F6FB',
     padding: 16,
-    paddingBottom: 32,
   },
-  loadingContainer: {
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  chip: {
+    marginHorizontal: 6,
+    backgroundColor: '#eee',
+  },
+  chipActive: {
+    backgroundColor: '#6366F1',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    width: '48%',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+  statValue: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  statLabel: {
+    color: '#fff',
+    marginTop: 4,
+  },
+  card: {
+    marginVertical: 12,
+    padding: 12,
+    borderRadius: 16,
+    elevation: 4,
+  },
+  insight: {
+    marginVertical: 4,
+  },
+  button: {
+    marginVertical: 20,
+    borderRadius: 12,
+    paddingVertical: 6,
+  },
+  loading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  card: {
-    marginBottom: 16,
-    elevation: 4,
-  },
-  timeRangeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-  timeChip: {
-    backgroundColor: '#f0f0f0',
-  },
-  timeChipSelected: {
-    backgroundColor: '#6200ee',
-  },
-  timeChipText: {
-    color: '#666',
-  },
-  timeChipTextSelected: {
-    color: 'white',
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  statItem: {
-    width: '48%',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#6200ee',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  chart: {
-    marginVertical: 8,
-    borderRadius: 16,
-  },
-  moodChip: {
-    height: 28,
-  },
-  riskChip: {
-    height: 28,
-  },
-  insightText: {
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  actionButton: {
-    marginTop: 8,
-  },
 });
-
-export default StatsScreen;
