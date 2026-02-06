@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import {
   Card,
@@ -13,11 +14,12 @@ import {
   Text,
   TextInput,
   Chip,
-  Divider,
 } from 'react-native-paper';
 import { emotionAPI } from '../api/api';
 
 const EmotionEntryScreen = ({ navigation }) => {
+  const { width } = useWindowDimensions();
+
   const [formData, setFormData] = useState({
     mood: '',
     anxiety_level: 3,
@@ -28,7 +30,6 @@ const EmotionEntryScreen = ({ navigation }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
 
   const moods = [
     { key: 'happy', label: 'Happy', emoji: '😊', color: '#4CAF50' },
@@ -38,28 +39,13 @@ const EmotionEntryScreen = ({ navigation }) => {
     { key: 'neutral', label: 'Neutral', emoji: '😐', color: '#9E9E9E' },
   ];
 
-  const handleMoodSelect = (mood) => {
-    setFormData(prev => ({ ...prev, mood }));
-  };
-
-  const handleSliderChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const validateForm = () => {
+  const handleSubmit = async () => {
     if (!formData.mood) {
       Alert.alert('Error', 'Please select your mood');
-      return false;
+      return;
     }
     if (!formData.sleep_hours || formData.sleep_hours <= 0 || formData.sleep_hours > 24) {
-      Alert.alert('Error', 'Please enter valid sleep hours (0-24)');
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
+      Alert.alert('Error', 'Enter valid sleep hours (1-24)');
       return;
     }
 
@@ -67,333 +53,263 @@ const EmotionEntryScreen = ({ navigation }) => {
     try {
       const entryData = {
         ...formData,
-        date: new Date().toISOString().split('T')[0], // Today's date
+        date: new Date().toISOString().split('T')[0],
         sleep_hours: parseFloat(formData.sleep_hours),
       };
 
-      const response = await emotionAPI.createEntry(entryData);
-      
-      if (response.recommendations) {
-        setRecommendations(response.recommendations);
-      }
+      await emotionAPI.createEntry(entryData);
 
-      Alert.alert(
-        'Success!',
-        'Your emotion entry has been recorded successfully.',
-        [
-          {
-            text: 'View Recommendations',
-            onPress: () => {
-              if (response.recommendations && response.recommendations.length > 0) {
-                showRecommendations(response.recommendations);
-              }
-              navigation.goBack();
-            },
-          },
-          {
-            text: 'Done',
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
+      Alert.alert('Success', 'Your emotion entry has been saved.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
     } catch (error) {
-      console.error('Error saving entry:', error);
-      Alert.alert('Error', 'Failed to save your entry. Please try again.');
+      Alert.alert('Error', 'Failed to save entry');
     } finally {
       setLoading(false);
     }
   };
 
-  const showRecommendations = (recs) => {
-    const recommendationsText = recs.map((rec, index) => `${index + 1}. ${rec}`).join('\n\n');
-    Alert.alert(
-      'Your Personalized Recommendations',
-      recommendationsText,
-      [{ text: 'OK', style: 'default' }]
-    );
-  };
-
-  const renderSlider = (title, field, min, max, labels) => (
-    <View style={styles.sliderContainer}>
-      <Text style={styles.sliderTitle}>{title}</Text>
-      <View style={styles.sliderButtons}>
-        {Array.from({ length: max - min + 1 }, (_, i) => i + min).map((value) => (
-          <Chip
-            key={value}
-            style={[
-              styles.sliderChip,
-              formData[field] === value && styles.sliderChipSelected,
-            ]}
-            textStyle={[
-              styles.sliderChipText,
-              formData[field] === value && styles.sliderChipTextSelected,
-            ]}
-            onPress={() => handleSliderChange(field, value)}
-          >
-            {value}
-          </Chip>
-        ))}
-      </View>
-      <View style={styles.sliderLabels}>
-        {labels.map((label, index) => (
-          <Text key={index} style={styles.sliderLabel}>
-            {label}
-          </Text>
-        ))}
-      </View>
-    </View>
+  const renderScale = (title, field, labels) => (
+    <Card style={styles.card}>
+      <Card.Content>
+        <Title style={styles.sectionTitle}>{title}</Title>
+        <View style={styles.scaleRow}>
+          {[1, 2, 3, 4, 5].map((value) => (
+            <Chip
+              key={value}
+              style={[
+                styles.scaleChip,
+                formData[field] === value && styles.scaleChipActive,
+              ]}
+              textStyle={{
+                color: formData[field] === value ? '#fff' : '#555',
+              }}
+              onPress={() =>
+                setFormData((prev) => ({ ...prev, [field]: value }))
+              }
+            >
+              {value}
+            </Chip>
+          ))}
+        </View>
+        <View style={styles.scaleLabels}>
+          {labels.map((label, i) => (
+            <Text key={i} style={styles.scaleLabel}>
+              {label}
+            </Text>
+          ))}
+        </View>
+      </Card.Content>
+    </Card>
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.cardTitle}>How are you feeling today?</Title>
-            <Paragraph>
-              Take a moment to check in with your emotions. This helps you track your wellbeing journey.
-            </Paragraph>
-          </Card.Content>
-        </Card>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ padding: width > 600 ? 32 : 16 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Title style={styles.headerTitle}>How are you feeling today?</Title>
+        <Paragraph style={styles.headerSubtitle}>
+          Track your emotions & improve your wellbeing 🌱
+        </Paragraph>
+      </View>
 
-        {/* Mood Selection */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Current Mood</Title>
-            <View style={styles.moodContainer}>
-              {moods.map((mood) => (
-                <Chip
-                  key={mood.key}
-                  style={[
-                    styles.moodChip,
-                    formData.mood === mood.key && {
-                      backgroundColor: mood.color,
-                    },
-                  ]}
-                  textStyle={[
-                    styles.moodChipText,
-                    formData.mood === mood.key && { color: 'white' },
-                  ]}
-                  onPress={() => handleMoodSelect(mood.key)}
-                >
-                  <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-                  <Text style={styles.moodLabel}>{mood.label}</Text>
-                </Chip>
-              ))}
-            </View>
-          </Card.Content>
-        </Card>
+      {/* Mood */}
+      <Card style={styles.card}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Your Mood</Title>
+          <View style={styles.moodGrid}>
+            {moods.map((mood) => (
+              <Chip
+                key={mood.key}
+                style={[
+                  styles.moodChip,
+                  formData.mood === mood.key && {
+                    backgroundColor: mood.color,
+                  },
+                ]}
+                textStyle={{
+                  color: formData.mood === mood.key ? '#fff' : '#333',
+                }}
+                onPress={() =>
+                  setFormData((prev) => ({ ...prev, mood: mood.key }))
+                }
+              >
+                {mood.emoji} {mood.label}
+              </Chip>
+            ))}
+          </View>
+        </Card.Content>
+      </Card>
 
-        {/* Anxiety Level */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Anxiety Level</Title>
-            {renderSlider(
-              'How anxious are you feeling?',
-              'anxiety_level',
-              1,
-              5,
-              ['Very Low', 'Low', 'Moderate', 'High', 'Very High']
-            )}
-          </Card.Content>
-        </Card>
+      {renderScale('Anxiety Level', 'anxiety_level', [
+        'Very Low',
+        'Low',
+        'Moderate',
+        'High',
+        'Very High',
+      ])}
 
-        {/* Sleep Hours */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Sleep</Title>
-            <TextInput
-              label="Hours of sleep last night"
-              value={formData.sleep_hours}
-              onChangeText={(value) => setFormData(prev => ({ ...prev, sleep_hours: value }))}
-              mode="outlined"
-              keyboardType="numeric"
-              placeholder="e.g., 7.5"
-              style={styles.textInput}
-            />
-          </Card.Content>
-        </Card>
+      {/* Sleep */}
+      <Card style={styles.card}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Sleep</Title>
+          <TextInput
+            label="Hours of sleep"
+            mode="outlined"
+            keyboardType="numeric"
+            value={formData.sleep_hours}
+            onChangeText={(v) =>
+              setFormData((prev) => ({ ...prev, sleep_hours: v }))
+            }
+            style={styles.input}
+          />
+        </Card.Content>
+      </Card>
 
-        {/* Energy Level */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Energy Level</Title>
-            {renderSlider(
-              'What is your energy level?',
-              'energy_level',
-              1,
-              5,
-              ['Very Low', 'Low', 'Moderate', 'High', 'Very High']
-            )}
-          </Card.Content>
-        </Card>
+      {renderScale('Energy Level', 'energy_level', [
+        'Very Low',
+        'Low',
+        'Moderate',
+        'High',
+        'Very High',
+      ])}
 
-        {/* Appetite */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Appetite</Title>
-            {renderSlider(
-              'How is your appetite today?',
-              'appetite',
-              1,
-              5,
-              ['Very Poor', 'Poor', 'Normal', 'Good', 'Very Good']
-            )}
-          </Card.Content>
-        </Card>
+      {renderScale('Appetite', 'appetite', [
+        'Very Poor',
+        'Poor',
+        'Normal',
+        'Good',
+        'Very Good',
+      ])}
 
-        {/* Journal */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Journal (Optional)</Title>
-            <Paragraph style={styles.journalHint}>
-              Share any thoughts or feelings you'd like to remember...
-            </Paragraph>
-            <TextInput
-              label="Your thoughts"
-              value={formData.journal_text}
-              onChangeText={(value) => setFormData(prev => ({ ...prev, journal_text: value }))}
-              mode="outlined"
-              multiline
-              numberOfLines={4}
-              style={styles.textInput}
-              placeholder="How was your day? Anything on your mind?"
-            />
-          </Card.Content>
-        </Card>
+      {/* Journal */}
+      <Card style={styles.card}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Journal</Title>
+          <TextInput
+            mode="outlined"
+            multiline
+            numberOfLines={4}
+            placeholder="Write your thoughts..."
+            value={formData.journal_text}
+            onChangeText={(v) =>
+              setFormData((prev) => ({ ...prev, journal_text: v }))
+            }
+            style={styles.input}
+          />
+        </Card.Content>
+      </Card>
 
-        {/* Submit Button */}
-        <Button
-          mode="contained"
-          onPress={handleSubmit}
-          loading={loading}
-          disabled={loading}
-          style={styles.submitButton}
-          contentStyle={styles.submitButtonContent}
-        >
-          {loading ? 'Saving...' : 'Save Entry'}
-        </Button>
+      {/* Button */}
+      <Button
+        mode="contained"
+        onPress={handleSubmit}
+        loading={loading}
+        disabled={loading}
+        style={styles.submitBtn}
+        contentStyle={{ paddingVertical: 12 }}
+      >
+        Save Entry
+      </Button>
 
-        <View style={styles.disclaimerContainer}>
-          <Text style={styles.disclaimerText}>
-            This app is not a medical diagnostic tool. If you're experiencing severe symptoms,
-            please consult a healthcare professional.
-          </Text>
-        </View>
+      {/* Disclaimer */}
+      <View style={styles.disclaimer}>
+        <Text style={styles.disclaimerText}>
+          This app is not a medical diagnostic tool. Please consult a professional
+          if symptoms persist.
+        </Text>
       </View>
     </ScrollView>
   );
 };
 
+export default EmotionEntryScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F7F8FC',
   },
-  content: {
-    padding: 16,
-    paddingBottom: 32,
+  header: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#4A148C',
+  },
+  headerSubtitle: {
+    color: '#666',
+    marginTop: 6,
+    textAlign: 'center',
   },
   card: {
+    borderRadius: 16,
     marginBottom: 16,
     elevation: 4,
-  },
-  cardTitle: {
-    textAlign: 'center',
-    color: '#6200ee',
+    backgroundColor: '#fff',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontWeight: '600',
     marginBottom: 12,
-    color: '#333',
   },
-  moodContainer: {
+  moodGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
   moodChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    width: '48%',
+    marginBottom: 10,
+    paddingVertical: 6,
+    justifyContent: 'center',
   },
-  moodChipText: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  moodEmoji: {
-    fontSize: 20,
-    marginRight: 6,
-  },
-  moodLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  sliderContainer: {
-    marginVertical: 8,
-  },
-  sliderTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#333',
-  },
-  sliderButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 8,
-  },
-  sliderChip: {
-    backgroundColor: '#f0f0f0',
-  },
-  sliderChipSelected: {
-    backgroundColor: '#6200ee',
-  },
-  sliderChipText: {
-    color: '#666',
-  },
-  sliderChipTextSelected: {
-    color: 'white',
-  },
-  sliderLabels: {
+  scaleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  sliderLabel: {
-    fontSize: 12,
-    color: '#666',
-    flex: 1,
-    textAlign: 'center',
+  scaleChip: {
+    backgroundColor: '#EEE',
+    width: 48,
+    justifyContent: 'center',
   },
-  textInput: {
+  scaleChipActive: {
+    backgroundColor: '#6200EE',
+  },
+  scaleLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 8,
   },
-  journalHint: {
-    fontStyle: 'italic',
-    color: '#666',
-    marginBottom: 8,
+  scaleLabel: {
+    fontSize: 11,
+    color: '#777',
+    textAlign: 'center',
+    flex: 1,
   },
-  submitButton: {
-    marginTop: 24,
-    marginBottom: 16,
+  input: {
+    backgroundColor: '#fff',
   },
-  submitButtonContent: {
-    paddingVertical: 12,
+  submitBtn: {
+    borderRadius: 12,
+    marginTop: 12,
+    backgroundColor: '#6200EE',
   },
-  disclaimerContainer: {
+  disclaimer: {
     backgroundColor: '#FFF3E0',
-    padding: 16,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 12,
     marginTop: 16,
   },
   disclaimerText: {
     fontSize: 12,
     color: '#E65100',
     textAlign: 'center',
-    lineHeight: 16,
   },
 });
-
-export default EmotionEntryScreen;
