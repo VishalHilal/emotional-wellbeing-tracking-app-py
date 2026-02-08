@@ -5,6 +5,7 @@ import {
   ScrollView,
   Dimensions,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   Card,
@@ -14,8 +15,8 @@ import {
   Button,
   DataTable,
 } from 'react-native-paper';
-import { LineChart, PieChart } from 'react-native-chart-kit';
 import LinearGradient from 'react-native-linear-gradient';
+import { LineChart, PieChart } from 'react-native-chart-kit';
 import { emotionAPI } from '../api/api';
 
 const { width } = Dimensions.get('window');
@@ -118,16 +119,34 @@ const StatsScreen = ({ navigation }) => {
       {moodData.length > 0 && (
         <Card style={styles.card}>
           <Title>Mood Distribution</Title>
-          <PieChart
-            data={moodData}
-            width={width - 40}
-            height={220}
-            chartConfig={chartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="10"
-            absolute
-          />
+          {Platform.OS === 'web' || !PieChart ? (
+            <View style={styles.chartPlaceholder}>
+              <Text style={styles.chartPlaceholderText}>
+                Charts are available on mobile devices
+              </Text>
+              <View style={styles.moodList}>
+                {moodData.map((item, index) => (
+                  <View key={index} style={styles.moodItem}>
+                    <View style={[styles.moodColorDot, { backgroundColor: item.color }]} />
+                    <Text style={styles.moodItemText}>
+                      {item.name}: {item.population}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <PieChart
+              data={moodData}
+              width={width - 40}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="10"
+              absolute
+            />
+          )}
         </Card>
       )}
 
@@ -135,19 +154,39 @@ const StatsScreen = ({ navigation }) => {
       {riskTrend.length > 0 && (
         <Card style={styles.card}>
           <Title>Risk Trend</Title>
-          <LineChart
-            data={{
-              labels: riskTrend.map(i =>
-                new Date(i.date).toLocaleDateString('en', { day: 'numeric', month: 'short' })
-              ),
-              datasets: [{ data: riskTrend.map(i => i.risk_score * 100) }],
-            }}
-            width={width - 40}
-            height={220}
-            chartConfig={chartConfig}
-            bezier
-            style={{ borderRadius: 16 }}
-          />
+          {Platform.OS === 'web' || !LineChart ? (
+            <View style={styles.chartPlaceholder}>
+              <Text style={styles.chartPlaceholderText}>
+                Charts are available on mobile devices
+              </Text>
+              <View style={styles.riskList}>
+                {riskTrend.slice(-7).map((item, index) => (
+                  <View key={index} style={styles.riskItem}>
+                    <Text style={styles.riskDate}>
+                      {new Date(item.date).toLocaleDateString('en', { day: 'numeric', month: 'short' })}
+                    </Text>
+                    <Text style={styles.riskValue}>
+                      {(item.risk_score * 100).toFixed(1)}%
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <LineChart
+              data={{
+                labels: riskTrend.map(i =>
+                  new Date(i.date).toLocaleDateString('en', { day: 'numeric', month: 'short' })
+                ),
+                datasets: [{ data: riskTrend.map(i => i.risk_score * 100) }],
+              }}
+              width={width - 40}
+              height={220}
+              chartConfig={chartConfig}
+              bezier
+              style={{ borderRadius: 16 }}
+            />
+          )}
         </Card>
       )}
 
@@ -202,12 +241,29 @@ const StatsScreen = ({ navigation }) => {
   );
 };
 
-const renderStat = (label, value) => (
-  <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.statCard}>
-    <Text style={styles.statValue}>{value?.toFixed(1) || 0}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </LinearGradient>
-);
+const renderStat = (label, value) => {
+  const gradientStyle = Platform.OS === 'web' 
+    ? {
+        background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+      }
+    : {};
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.statCard, gradientStyle]}>
+        <Text style={styles.statValue}>{value?.toFixed(1) || 0}</Text>
+        <Text style={styles.statLabel}>{label}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.statCard}>
+      <Text style={styles.statValue}>{value?.toFixed(1) || 0}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </LinearGradient>
+  );
+};
 
 export default StatsScreen;
 
@@ -272,5 +328,58 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  chartPlaceholder: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  chartPlaceholderText: {
+    color: '#666',
+    marginBottom: 16,
+    fontSize: 14,
+  },
+  moodList: {
+    width: '100%',
+  },
+  moodItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  moodColorDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  moodItemText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  riskList: {
+    width: '100%',
+  },
+  riskItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 4,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  riskDate: {
+    fontSize: 14,
+    color: '#666',
+  },
+  riskValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6366F1',
   },
 });

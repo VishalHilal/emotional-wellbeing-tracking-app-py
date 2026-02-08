@@ -208,112 +208,73 @@ const RegisterScreen = () => {
               )}
 
               <TextInput
-return (
-  <KeyboardAvoidingView
-    style={styles.container}
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-  >
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title style={styles.title}>Create Account</Title>
-          <Paragraph style={styles.subtitle}>
-            Start your emotional wellbeing journey 💜
-          </Paragraph>
+                label="Age (Optional)"
+                value={formData.age}
+                onChangeText={(value) => handleInputChange('age', value)}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="numeric"
+                error={!!errors.age}
+                disabled={loading}
+              />
+              {errors.age && (
+                <Text style={styles.errorText}>{errors.age}</Text>
+              )}
 
-          {/* Inputs */}
-          {[
-            { label: "Username", key: "username" },
-            { label: "Email", key: "email" },
-          ].map((item) => (
-            <TextInput
-              key={item.key}
-              label={item.label}
-              value={formData[item.key]}
-              onChangeText={(v) => handleInputChange(item.key, v)}
-              mode="outlined"
-              style={styles.input}
-              autoCapitalize="none"
-              error={!!errors[item.key]}
-              disabled={loading}
-            />
-          ))}
+              <TextInput
+                label="Delivery Date (Optional)"
+                value={formData.delivery_date}
+                onChangeText={(value) => handleInputChange('delivery_date', value)}
+                mode="outlined"
+                style={styles.input}
+                placeholder="YYYY-MM-DD"
+                error={!!errors.delivery_date}
+                disabled={loading}
+              />
+              {errors.delivery_date && (
+                <Text style={styles.errorText}>{errors.delivery_date}</Text>
+              )}
 
-          <TextInput
-            label="Password"
-            value={formData.password}
-            onChangeText={(v) => handleInputChange('password', v)}
-            mode="outlined"
-            style={styles.input}
-            secureTextEntry={!showPassword}
-            right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
-            error={!!errors.password}
-          />
+              <TextInput
+                label="Support System (Optional)"
+                value={formData.support_system}
+                onChangeText={(value) => handleInputChange('support_system', value)}
+                mode="outlined"
+                style={[styles.input, styles.textArea]}
+                multiline
+                numberOfLines={3}
+                error={!!errors.support_system}
+                disabled={loading}
+              />
+              {errors.support_system && (
+                <Text style={styles.errorText}>{errors.support_system}</Text>
+              )}
 
-          <TextInput
-            label="Confirm Password"
-            value={formData.password_confirm}
-            onChangeText={(v) => handleInputChange('password_confirm', v)}
-            mode="outlined"
-            style={styles.input}
-            secureTextEntry={!showConfirmPassword}
-            right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
-            error={!!errors.password_confirm}
-          />
+              <Button
+                mode="contained"
+                onPress={handleRegister}
+                loading={loading}
+                disabled={loading}
+                style={styles.button}
+              >
+                Create Account
+              </Button>
 
-          <TextInput
-            label="Age (Optional)"
-            value={formData.age}
-            onChangeText={(v) => handleInputChange('age', v)}
-            mode="outlined"
-            style={styles.input}
-            keyboardType="numeric"
-          />
-
-          <TextInput
-            label="Delivery Date"
-            value={formData.delivery_date}
-            onChangeText={(v) => handleInputChange('delivery_date', v)}
-            mode="outlined"
-            style={styles.input}
-            placeholder="YYYY-MM-DD"
-          />
-
-          <TextInput
-            label="Support System"
-            value={formData.support_system}
-            onChangeText={(v) => handleInputChange('support_system', v)}
-            mode="outlined"
-            style={[styles.input, styles.textArea]}
-            multiline
-          />
-
-          <Button
-            mode="contained"
-            onPress={handleRegister}
-            loading={loading}
-            style={styles.button}
-            contentStyle={{ paddingVertical: 10 }}
-          >
-            Create Account
-          </Button>
-
-          <Button
-            mode="text"
-            onPress={() => navigation.navigate('Login')}
-            style={styles.linkButton}
-          >
-            Already have an account? Sign In
-          </Button>
-
-        </Card.Content>
-      </Card>
-    </ScrollView>
-  </KeyboardAvoidingView>
-);
+              <Button
+                mode="text"
+                onPress={() => navigation.navigate('Login')}
+                disabled={loading}
+                style={styles.linkButton}
+              >
+                Already have an account? Sign In
+              </Button>
+            </Card.Content>
+          </Card>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -344,6 +305,9 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 8,
+  },
+  textArea: {
+    minHeight: 80,
   },
   errorText: {
     color: '#B00020',

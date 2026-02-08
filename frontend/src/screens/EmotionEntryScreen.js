@@ -4,16 +4,9 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-<<<<<<< HEAD
-<<<<<<< HEAD
   Modal,
   TouchableOpacity,
-=======
   useWindowDimensions,
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
-  useWindowDimensions,
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
 } from 'react-native';
 import {
   Card,
@@ -40,14 +33,7 @@ const EmotionEntryScreen = ({ navigation }) => {
   });
 
   const [loading, setLoading] = useState(false);
-<<<<<<< HEAD
-<<<<<<< HEAD
-  const [recommendations, setRecommendations] = useState([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
 
   const moods = [
     { key: 'happy', label: 'Happy', emoji: '😊', color: '#4CAF50' },
@@ -57,16 +43,6 @@ const EmotionEntryScreen = ({ navigation }) => {
     { key: 'neutral', label: 'Neutral', emoji: '😐', color: '#9E9E9E' },
   ];
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-  const handleMoodSelect = (mood) => {
-    setFormData(prev => ({ ...prev, mood }));
-  };
-
-  const handleSliderChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleDateSelect = (daysOffset) => {
     const newDate = new Date();
     newDate.setDate(newDate.getDate() + daysOffset);
@@ -74,13 +50,7 @@ const EmotionEntryScreen = ({ navigation }) => {
     setShowDatePicker(false);
   };
 
-  const validateForm = () => {
-=======
   const handleSubmit = async () => {
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
-  const handleSubmit = async () => {
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
     if (!formData.mood) {
       Alert.alert('Error', 'Please select your mood');
       return;
@@ -94,15 +64,7 @@ const EmotionEntryScreen = ({ navigation }) => {
     try {
       const entryData = {
         ...formData,
-<<<<<<< HEAD
-<<<<<<< HEAD
         date: formData.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
-=======
-        date: new Date().toISOString().split('T')[0],
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
-        date: new Date().toISOString().split('T')[0],
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
         sleep_hours: parseFloat(formData.sleep_hours),
       };
 
@@ -165,7 +127,6 @@ const EmotionEntryScreen = ({ navigation }) => {
           Track your emotions & improve your wellbeing 🌱
         </Paragraph>
       </View>
-<<<<<<< HEAD
 
       {/* Mood */}
       <Card style={styles.card}>
@@ -203,168 +164,107 @@ const EmotionEntryScreen = ({ navigation }) => {
         'Very High',
       ])}
 
-<<<<<<< HEAD
-        {/* Date Selection */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Date</Title>
+      {/* Date Selection */}
+      <Card style={styles.card}>
+        <Card.Content>
+          <Title style={styles.sectionTitle}>Date</Title>
+          <Button
+            mode="outlined"
+            onPress={() => setShowDatePicker(true)}
+            style={styles.dateButton}
+          >
+            {formData.date.toLocaleDateString()}
+          </Button>
+        </Card.Content>
+      </Card>
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Title style={styles.modalTitle}>Select Date</Title>
+            
+            <TouchableOpacity
+              style={styles.dateOption}
+              onPress={() => handleDateSelect(0)}
+            >
+              <Text style={styles.dateOptionText}>Today</Text>
+              <Text style={styles.dateOptionSubtext}>
+                {new Date().toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.dateOption}
+              onPress={() => handleDateSelect(-1)}
+            >
+              <Text style={styles.dateOptionText}>Yesterday</Text>
+              <Text style={styles.dateOptionSubtext}>
+                {new Date(Date.now() - 86400000).toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.dateOption}
+              onPress={() => handleDateSelect(-2)}
+            >
+              <Text style={styles.dateOptionText}>2 Days Ago</Text>
+              <Text style={styles.dateOptionSubtext}>
+                {new Date(Date.now() - 172800000).toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.dateOption}
+              onPress={() => handleDateSelect(-3)}
+            >
+              <Text style={styles.dateOptionText}>3 Days Ago</Text>
+              <Text style={styles.dateOptionSubtext}>
+                {new Date(Date.now() - 259200000).toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.dateOption}
+              onPress={() => handleDateSelect(-7)}
+            >
+              <Text style={styles.dateOptionText}>1 Week Ago</Text>
+              <Text style={styles.dateOptionSubtext}>
+                {new Date(Date.now() - 604800000).toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            
             <Button
               mode="outlined"
-              onPress={() => setShowDatePicker(true)}
-              style={styles.dateButton}
+              onPress={() => setShowDatePicker(false)}
+              style={styles.cancelButton}
             >
-              {formData.date.toLocaleDateString()}
+              Cancel
             </Button>
-          </Card.Content>
-        </Card>
-
-        {/* Date Picker Modal */}
-        <Modal
-          visible={showDatePicker}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Title style={styles.modalTitle}>Select Date</Title>
-              
-              <TouchableOpacity
-                style={styles.dateOption}
-                onPress={() => handleDateSelect(0)}
-              >
-                <Text style={styles.dateOptionText}>Today</Text>
-                <Text style={styles.dateOptionSubtext}>
-                  {new Date().toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.dateOption}
-                onPress={() => handleDateSelect(-1)}
-              >
-                <Text style={styles.dateOptionText}>Yesterday</Text>
-                <Text style={styles.dateOptionSubtext}>
-                  {new Date(Date.now() - 86400000).toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.dateOption}
-                onPress={() => handleDateSelect(-2)}
-              >
-                <Text style={styles.dateOptionText}>2 Days Ago</Text>
-                <Text style={styles.dateOptionSubtext}>
-                  {new Date(Date.now() - 172800000).toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.dateOption}
-                onPress={() => handleDateSelect(-3)}
-              >
-                <Text style={styles.dateOptionText}>3 Days Ago</Text>
-                <Text style={styles.dateOptionSubtext}>
-                  {new Date(Date.now() - 259200000).toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.dateOption}
-                onPress={() => handleDateSelect(-7)}
-              >
-                <Text style={styles.dateOptionText}>1 Week Ago</Text>
-                <Text style={styles.dateOptionSubtext}>
-                  {new Date(Date.now() - 604800000).toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-              
-              <Button
-                mode="outlined"
-                onPress={() => setShowDatePicker(false)}
-                style={styles.cancelButton}
-              >
-                Cancel
-              </Button>
-            </View>
           </View>
-        </Modal>
+        </View>
+      </Modal>
 
-        {/* Sleep Hours */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title style={styles.sectionTitle}>Sleep</Title>
-            <TextInput
-              label="Hours of sleep last night"
-              value={formData.sleep_hours}
-              onChangeText={(value) => setFormData(prev => ({ ...prev, sleep_hours: value }))}
-              mode="outlined"
-              keyboardType="numeric"
-              placeholder="e.g., 7.5"
-              style={styles.textInput}
-            />
-          </Card.Content>
-        </Card>
-=======
-=======
-
-      {/* Mood */}
-      <Card style={styles.card}>
-        <Card.Content>
-          <Title style={styles.sectionTitle}>Your Mood</Title>
-          <View style={styles.moodGrid}>
-            {moods.map((mood) => (
-              <Chip
-                key={mood.key}
-                style={[
-                  styles.moodChip,
-                  formData.mood === mood.key && {
-                    backgroundColor: mood.color,
-                  },
-                ]}
-                textStyle={{
-                  color: formData.mood === mood.key ? '#fff' : '#333',
-                }}
-                onPress={() =>
-                  setFormData((prev) => ({ ...prev, mood: mood.key }))
-                }
-              >
-                {mood.emoji} {mood.label}
-              </Chip>
-            ))}
-          </View>
-        </Card.Content>
-      </Card>
-
-      {renderScale('Anxiety Level', 'anxiety_level', [
-        'Very Low',
-        'Low',
-        'Moderate',
-        'High',
-        'Very High',
-      ])}
-
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-      {/* Sleep */}
+      {/* Sleep Hours */}
       <Card style={styles.card}>
         <Card.Content>
           <Title style={styles.sectionTitle}>Sleep</Title>
           <TextInput
-            label="Hours of sleep"
+            label="Hours of sleep last night"
+            value={formData.sleep_hours}
+            onChangeText={(value) => setFormData(prev => ({ ...prev, sleep_hours: value }))}
             mode="outlined"
             keyboardType="numeric"
-            value={formData.sleep_hours}
-            onChangeText={(v) =>
-              setFormData((prev) => ({ ...prev, sleep_hours: v }))
-            }
-            style={styles.input}
+            placeholder="e.g., 7.5"
+            style={styles.textInput}
           />
         </Card.Content>
       </Card>
-<<<<<<< HEAD
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
 
       {renderScale('Energy Level', 'energy_level', [
         'Very Low',
@@ -475,27 +375,25 @@ const styles = StyleSheet.create({
     width: 48,
     justifyContent: 'center',
   },
-<<<<<<< HEAD
-<<<<<<< HEAD
+  scaleChipActive: {
+    backgroundColor: '#6200EE',
+  },
+  scaleLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  scaleLabel: {
+    fontSize: 11,
+    color: '#777',
+    textAlign: 'center',
+    flex: 1,
+  },
   dateButton: {
     marginTop: 8,
   },
   textInput: {
-=======
-  scaleChipActive: {
-    backgroundColor: '#6200EE',
-  },
-  scaleLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-    marginTop: 8,
-  },
-  scaleLabel: {
-    fontSize: 11,
-    color: '#777',
-    textAlign: 'center',
-    flex: 1,
+    backgroundColor: '#fff',
   },
   input: {
     backgroundColor: '#fff',
@@ -505,30 +403,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     backgroundColor: '#6200EE',
   },
-=======
-  scaleChipActive: {
-    backgroundColor: '#6200EE',
-  },
-  scaleLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  scaleLabel: {
-    fontSize: 11,
-    color: '#777',
-    textAlign: 'center',
-    flex: 1,
-  },
-  input: {
-    backgroundColor: '#fff',
-  },
-  submitBtn: {
-    borderRadius: 12,
-    marginTop: 12,
-    backgroundColor: '#6200EE',
-  },
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
   disclaimer: {
     backgroundColor: '#FFF3E0',
     padding: 14,
@@ -539,7 +413,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#E65100',
     textAlign: 'center',
-<<<<<<< HEAD
   },
   modalOverlay: {
     flex: 1,
@@ -576,7 +449,5 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginTop: 15,
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
   },
 });

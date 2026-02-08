@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -19,21 +19,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { authAPI } from '../api/api';
 
-<<<<<<< HEAD
-const LoginScreen = () => {
-=======
 const LoginScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
-
-<<<<<<< HEAD
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigation = useNavigation();
+  const navigationHook = useNavigation();
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -48,20 +40,12 @@ const LoginScreen = ({ navigation, route }) => {
       await AsyncStorage.setItem('userToken', response.tokens.access);
       await AsyncStorage.setItem('refreshToken', response.tokens.refresh);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
-<<<<<<< HEAD
-<<<<<<< HEAD
       
-      // Navigate to Home screen
-      navigation.reset({
+      // Navigate to MainApp (which contains the drawer navigator)
+      navigationHook.reset({
         index: 0,
-        routes: [{ name: 'Home' }],
+        routes: [{ name: 'MainApp' }],
       });
-=======
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-
-      setUserToken(response.tokens.access);
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
     } catch (error) {
       Alert.alert(
         'Login Failed',
@@ -134,7 +118,7 @@ const LoginScreen = ({ navigation, route }) => {
                 onPress={() => navigation.navigate('Register')}
                 style={styles.linkButton}
               >
-                Don’t have an account? Sign Up
+                Don't have an account? Sign Up
               </Button>
 
             </Card.Content>
@@ -192,55 +176,3 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
 });
-            <Button
-              mode="text"
-              onPress={() => navigation.navigate('Register')}
-              style={styles.linkButton}
-            >
-              Don't have an account? Sign Up
-            </Button>
-          </Card.Content>
-        </Card>
-      </View>
-    </KeyboardAvoidingView>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  card: {
-    padding: 20,
-    elevation: 4,
-  },
-  title: {
-    textAlign: 'center',
-    fontSize: 28,
-    marginBottom: 8,
-    color: '#6200ee',
-  },
-  subtitle: {
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#666',
-  },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 10,
-    paddingVertical: 8,
-  },
-  linkButton: {
-    marginTop: 15,
-  },
-});
-
-export default LoginScreen;

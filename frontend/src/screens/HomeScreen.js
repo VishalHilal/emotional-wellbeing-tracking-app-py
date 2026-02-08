@@ -23,20 +23,14 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { emotionAPI } from '../api/api';
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-const HomeScreen = () => {
-=======
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
 const { width } = Dimensions.get('window');
 
-const HomeScreen = ({ navigation, route }) => {
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
+const HomeScreen = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userData, setUserData] = useState(null);
+
   const navigation = useNavigation();
 
   useFocusEffect(
@@ -68,44 +62,18 @@ const HomeScreen = ({ navigation, route }) => {
     loadDashboardData();
   };
 
-  const handleLogout = async () => {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
-              // Navigate to Login screen
-              navigation.reset({
-                index: 0,
-                routes: [{ name: 'Login' }],
-              });
-            } catch (error) {
-              console.error('Error during logout:', error);
-            }
-          },
-=======
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-    Alert.alert('Logout', 'Are you sure?', [
-      { text: 'Cancel' },
+  const handleLogout = () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
         style: 'destructive',
         onPress: async () => {
           await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
-          setUserToken(null);
-<<<<<<< HEAD
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
         },
       },
     ]);
@@ -146,30 +114,33 @@ const HomeScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <Appbar.Header style={styles.appbar}>
-        <Appbar.Action
-          icon="menu"
-          onPress={() => navigation.openDrawer()}
-        />
+        <Appbar.Action icon="menu" onPress={() => navigation.openDrawer()} />
         <Appbar.Content title="Dashboard" />
       </Appbar.Header>
-      
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Header */}
         <Card style={styles.headerCard}>
-          <Title style={styles.headerTitle}>Hello, {userData?.username || 'User'} 👋</Title>
-          <Paragraph style={styles.subtitle}>Track your emotional health today</Paragraph>
+          <Title style={styles.headerTitle}>
+            Hello, {userData?.username || 'User'} 👋
+          </Title>
+          <Paragraph style={styles.subtitle}>
+            Track your emotional health today
+          </Paragraph>
         </Card>
 
-        {/* Today Check-in */}
         {dashboardData?.today_entry ? (
           <Card style={styles.mainCard}>
             <Title>Today's Mood</Title>
             <View style={styles.moodRow}>
-              <Text style={styles.emoji}>{getMoodEmoji(dashboardData.today_entry.mood)}</Text>
-              <Text style={styles.moodText}>{dashboardData.today_entry.mood}</Text>
+              <Text style={styles.emoji}>
+                {getMoodEmoji(dashboardData.today_entry.mood)}
+              </Text>
+              <Text style={styles.moodText}>
+                {dashboardData.today_entry.mood}
+              </Text>
             </View>
 
             <Chip
@@ -186,13 +157,16 @@ const HomeScreen = ({ navigation, route }) => {
           <Card style={styles.mainCardAlt}>
             <Title>No Check-in Today</Title>
             <Paragraph>Log how you're feeling now.</Paragraph>
-            <Button mode="contained" onPress={() => navigation.navigate('EmotionEntry')} style={styles.btn}>
+            <Button
+              mode="contained"
+              onPress={() => navigation.navigate('EmotionEntry')}
+              style={styles.btn}
+            >
               Check In
             </Button>
           </Card>
         )}
 
-        {/* Stats */}
         <View style={styles.statsRow}>
           <Card style={styles.statCard}>
             <Text style={styles.statNumber}>{dashboardData?.streak || 0}</Text>
@@ -200,12 +174,13 @@ const HomeScreen = ({ navigation, route }) => {
           </Card>
 
           <Card style={styles.statCard}>
-            <Text style={styles.statNumber}>{dashboardData?.week_moods?.length || 0}</Text>
+            <Text style={styles.statNumber}>
+              {dashboardData?.week_moods?.length || 0}
+            </Text>
             <Text style={styles.statLabel}>This Week</Text>
           </Card>
         </View>
 
-        {/* Assessment */}
         {dashboardData?.recent_assessment && (
           <Card style={styles.assessmentCard}>
             <Title>Latest Assessment</Title>
@@ -224,13 +199,16 @@ const HomeScreen = ({ navigation, route }) => {
               </Text>
             </View>
 
-            {dashboardData.recent_assessment.recommendations.slice(0, 3).map((rec, i) => (
-              <Text key={i} style={styles.recommendation}>• {rec}</Text>
-            ))}
+            {dashboardData.recent_assessment.recommendations
+              .slice(0, 3)
+              .map((rec, i) => (
+                <Text key={i} style={styles.recommendation}>
+                  • {rec}
+                </Text>
+              ))}
           </Card>
         )}
 
-        {/* Actions */}
         <Card style={styles.actionCard}>
           <List.Item title="Statistics" left={() => <List.Icon icon="chart-line" />} onPress={() => navigation.navigate('Stats')} />
           <Divider />
@@ -261,40 +239,20 @@ const styles = StyleSheet.create({
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
+  appbar: { backgroundColor: '#6200ee' },
+
   headerCard: {
     margin: 16,
     padding: 20,
     borderRadius: 20,
     backgroundColor: '#6C63FF',
-<<<<<<< HEAD
   },
-<<<<<<< HEAD
-  appbar: {
-    backgroundColor: '#6200ee',
-  },
-  scrollView: {
-    flex: 1,
-    padding: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcomeCard: {
-=======
-=======
-  },
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
+
   headerTitle: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
   subtitle: { color: '#eee', marginTop: 4 },
 
   mainCard: {
     marginHorizontal: 16,
-<<<<<<< HEAD
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
-=======
->>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
     marginBottom: 16,
     padding: 20,
     borderRadius: 20,
