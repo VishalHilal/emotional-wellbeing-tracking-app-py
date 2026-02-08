@@ -16,18 +16,18 @@ import {
   Chip,
   List,
   Divider,
+  Appbar,
 } from 'react-native-paper';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { emotionAPI } from '../api/api';
 
-const HomeScreen = ({ navigation, route }) => {
+const HomeScreen = () => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userData, setUserData] = useState(null);
-
-  const { setUserToken } = route.params;
+  const navigation = useNavigation();
 
   useFocusEffect(
     useCallback(() => {
@@ -77,7 +77,11 @@ const HomeScreen = ({ navigation, route }) => {
           onPress: async () => {
             try {
               await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
-              setUserToken(null);
+              // Navigate to Login screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
             } catch (error) {
               console.error('Error during logout:', error);
             }
@@ -134,6 +138,14 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
+      <Appbar.Header style={styles.appbar}>
+        <Appbar.Action
+          icon="menu"
+          onPress={() => navigation.openDrawer()}
+        />
+        <Appbar.Content title="Dashboard" />
+      </Appbar.Header>
+      
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -298,6 +310,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  appbar: {
+    backgroundColor: '#6200ee',
   },
   scrollView: {
     flex: 1,

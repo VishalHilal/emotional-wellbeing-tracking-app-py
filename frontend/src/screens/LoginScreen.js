@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   StyleSheet,
@@ -15,15 +15,15 @@ import {
   Paragraph,
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { authAPI } from '../api/api';
 
-const LoginScreen = ({ navigation, route }) => {
+const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const { setUserToken } = route.params;
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -40,7 +40,11 @@ const LoginScreen = ({ navigation, route }) => {
       await AsyncStorage.setItem('refreshToken', response.tokens.refresh);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
       
-      setUserToken(response.tokens.access);
+      // Navigate to Home screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
     } catch (error) {
       Alert.alert(
         'Login Failed',

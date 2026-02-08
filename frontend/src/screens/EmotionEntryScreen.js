@@ -4,6 +4,8 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Modal,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Card,
@@ -25,10 +27,12 @@ const EmotionEntryScreen = ({ navigation }) => {
     energy_level: 3,
     appetite: 3,
     journal_text: '',
+    date: new Date(),
   });
 
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const moods = [
     { key: 'happy', label: 'Happy', emoji: '😊', color: '#4CAF50' },
@@ -44,6 +48,13 @@ const EmotionEntryScreen = ({ navigation }) => {
 
   const handleSliderChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDateSelect = (daysOffset) => {
+    const newDate = new Date();
+    newDate.setDate(newDate.getDate() + daysOffset);
+    setFormData(prev => ({ ...prev, date: newDate }));
+    setShowDatePicker(false);
   };
 
   const validateForm = () => {
@@ -67,7 +78,7 @@ const EmotionEntryScreen = ({ navigation }) => {
     try {
       const entryData = {
         ...formData,
-        date: new Date().toISOString().split('T')[0], // Today's date
+        date: formData.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
         sleep_hours: parseFloat(formData.sleep_hours),
       };
 
@@ -197,6 +208,92 @@ const EmotionEntryScreen = ({ navigation }) => {
             )}
           </Card.Content>
         </Card>
+
+        {/* Date Selection */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Title style={styles.sectionTitle}>Date</Title>
+            <Button
+              mode="outlined"
+              onPress={() => setShowDatePicker(true)}
+              style={styles.dateButton}
+            >
+              {formData.date.toLocaleDateString()}
+            </Button>
+          </Card.Content>
+        </Card>
+
+        {/* Date Picker Modal */}
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Title style={styles.modalTitle}>Select Date</Title>
+              
+              <TouchableOpacity
+                style={styles.dateOption}
+                onPress={() => handleDateSelect(0)}
+              >
+                <Text style={styles.dateOptionText}>Today</Text>
+                <Text style={styles.dateOptionSubtext}>
+                  {new Date().toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.dateOption}
+                onPress={() => handleDateSelect(-1)}
+              >
+                <Text style={styles.dateOptionText}>Yesterday</Text>
+                <Text style={styles.dateOptionSubtext}>
+                  {new Date(Date.now() - 86400000).toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.dateOption}
+                onPress={() => handleDateSelect(-2)}
+              >
+                <Text style={styles.dateOptionText}>2 Days Ago</Text>
+                <Text style={styles.dateOptionSubtext}>
+                  {new Date(Date.now() - 172800000).toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.dateOption}
+                onPress={() => handleDateSelect(-3)}
+              >
+                <Text style={styles.dateOptionText}>3 Days Ago</Text>
+                <Text style={styles.dateOptionSubtext}>
+                  {new Date(Date.now() - 259200000).toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.dateOption}
+                onPress={() => handleDateSelect(-7)}
+              >
+                <Text style={styles.dateOptionText}>1 Week Ago</Text>
+                <Text style={styles.dateOptionSubtext}>
+                  {new Date(Date.now() - 604800000).toLocaleDateString()}
+                </Text>
+              </TouchableOpacity>
+              
+              <Button
+                mode="outlined"
+                onPress={() => setShowDatePicker(false)}
+                style={styles.cancelButton}
+              >
+                Cancel
+              </Button>
+            </View>
+          </View>
+        </Modal>
 
         {/* Sleep Hours */}
         <Card style={styles.card}>
@@ -367,6 +464,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  dateButton: {
+    marginTop: 8,
+  },
   textInput: {
     marginTop: 8,
   },
@@ -393,6 +493,42 @@ const styles = StyleSheet.create({
     color: '#E65100',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    maxHeight: '70%',
+  },
+  modalTitle: {
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#6200ee',
+  },
+  dateOption: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dateOptionText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  dateOptionSubtext: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  cancelButton: {
+    marginTop: 15,
   },
 });
 

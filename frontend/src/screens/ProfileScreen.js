@@ -16,9 +16,10 @@ import {
   Divider,
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { authAPI } from '../api/api';
 
-const ProfileScreen = ({ navigation, route }) => {
+const ProfileScreen = () => {
   const [userData, setUserData] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -28,8 +29,7 @@ const ProfileScreen = ({ navigation, route }) => {
     support_system: '',
   });
   const [loading, setLoading] = useState(false);
-
-  const { setUserToken } = route.params;
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadUserData();
@@ -122,7 +122,11 @@ const ProfileScreen = ({ navigation, route }) => {
           onPress: async () => {
             try {
               await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
-              setUserToken(null);
+              // Navigate to Login screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              });
             } catch (error) {
               console.error('Error during logout:', error);
             }

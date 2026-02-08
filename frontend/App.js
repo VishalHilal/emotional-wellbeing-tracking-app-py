@@ -7,10 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
-import HomeScreen from './src/screens/HomeScreen';
-import EmotionEntryScreen from './src/screens/EmotionEntryScreen';
-import StatsScreen from './src/screens/StatsScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import DrawerNavigator from './src/navigation/DrawerNavigator';
 import LoadingScreen from './src/screens/LoadingScreen';
 
 const Stack = createStackNavigator();
@@ -18,6 +15,7 @@ const Stack = createStackNavigator();
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     checkLoginStatus();
@@ -31,10 +29,15 @@ export default function App() {
       console.error('Error checking login status:', error);
     } finally {
       setIsLoading(false);
+      setIsReady(true);
     }
   };
 
-  if (isLoading) {
+  const handleSetUserToken = (token) => {
+    setUserToken(token);
+  };
+
+  if (isLoading || !isReady) {
     return <LoadingScreen />;
   }
 
@@ -60,40 +63,20 @@ export default function App() {
                 name="Login"
                 component={LoginScreen}
                 options={{ headerShown: false }}
-                initialParams={{ setUserToken }}
               />
               <Stack.Screen
                 name="Register"
                 component={RegisterScreen}
                 options={{ headerShown: false }}
-                initialParams={{ setUserToken }}
               />
             </>
           ) : (
-            // Main app screens
-            <>
-              <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{ headerShown: false }}
-                initialParams={{ setUserToken }}
-              />
-              <Stack.Screen
-                name="EmotionEntry"
-                component={EmotionEntryScreen}
-                options={{ title: 'Daily Check-in' }}
-              />
-              <Stack.Screen
-                name="Stats"
-                component={StatsScreen}
-                options={{ title: 'Your Progress' }}
-              />
-              <Stack.Screen
-                name="Profile"
-                component={ProfileScreen}
-                options={{ title: 'Profile' }}
-              />
-            </>
+            // Main app screens with drawer navigation
+            <Stack.Screen
+              name="MainApp"
+              component={DrawerNavigator}
+              options={{ headerShown: false }}
+            />
           )}
         </Stack.Navigator>
       </NavigationContainer>

@@ -16,9 +16,10 @@ import {
   Paragraph,
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { authAPI } from '../api/api';
 
-const RegisterScreen = ({ navigation, route }) => {
+const RegisterScreen = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -33,8 +34,7 @@ const RegisterScreen = ({ navigation, route }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const { setUserToken } = route.params;
+  const navigation = useNavigation();
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -95,7 +95,11 @@ const RegisterScreen = ({ navigation, route }) => {
       await AsyncStorage.setItem('refreshToken', response.tokens.refresh);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
       
-      setUserToken(response.tokens.access);
+      // Navigate to Home screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }],
+      });
     } catch (error) {
       const errorData = error.response?.data;
       if (typeof errorData === 'object') {
