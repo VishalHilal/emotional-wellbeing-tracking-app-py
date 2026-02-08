@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   RefreshControl,
   Alert,
+  Dimensions,
 } from 'react-native';
 import {
   Card,
@@ -22,7 +23,13 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { emotionAPI } from '../api/api';
 
+<<<<<<< HEAD
 const HomeScreen = () => {
+=======
+const { width } = Dimensions.get('window');
+
+const HomeScreen = ({ navigation, route }) => {
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -37,14 +44,8 @@ const HomeScreen = () => {
   );
 
   const loadUserData = async () => {
-    try {
-      const userDataStr = await AsyncStorage.getItem('userData');
-      if (userDataStr) {
-        setUserData(JSON.parse(userDataStr));
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    }
+    const userDataStr = await AsyncStorage.getItem('userData');
+    if (userDataStr) setUserData(JSON.parse(userDataStr));
   };
 
   const loadDashboardData = async () => {
@@ -52,7 +53,6 @@ const HomeScreen = () => {
       const data = await emotionAPI.getDashboardSummary();
       setDashboardData(data);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
       Alert.alert('Error', 'Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -66,6 +66,7 @@ const HomeScreen = () => {
   };
 
   const handleLogout = async () => {
+<<<<<<< HEAD
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -86,9 +87,19 @@ const HomeScreen = () => {
               console.error('Error during logout:', error);
             }
           },
+=======
+    Alert.alert('Logout', 'Are you sure?', [
+      { text: 'Cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
+          setUserToken(null);
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const getMoodEmoji = (mood) => {
@@ -102,8 +113,8 @@ const HomeScreen = () => {
     return moodEmojis[mood] || '😐';
   };
 
-  const getRiskColor = (riskCategory) => {
-    switch (riskCategory) {
+  const getRiskColor = (risk) => {
+    switch (risk) {
       case 'low':
         return '#4CAF50';
       case 'moderate':
@@ -115,23 +126,10 @@ const HomeScreen = () => {
     }
   };
 
-  const getRiskMessage = (riskCategory) => {
-    switch (riskCategory) {
-      case 'low':
-        return 'You\'re doing well! Keep up the good work.';
-      case 'moderate':
-        return 'Consider some self-care activities today.';
-      case 'high':
-        return 'Please consider reaching out for support.';
-      default:
-        return 'Complete your daily check-in to see your status.';
-    }
-  };
-
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+      <View style={styles.loading}>
+        <Text variant="titleLarge">Loading...</Text>
       </View>
     );
   }
@@ -147,158 +145,99 @@ const HomeScreen = () => {
       </Appbar.Header>
       
       <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Welcome Header */}
-        <Card style={styles.welcomeCard}>
-          <Card.Content>
-            <Title style={styles.welcomeTitle}>
-              Welcome back, {userData?.username || 'User'}! 👋
-            </Title>
-            <Paragraph>
-              How are you feeling today? Take a moment to check in.
-            </Paragraph>
-          </Card.Content>
+        {/* Header */}
+        <Card style={styles.headerCard}>
+          <Title style={styles.headerTitle}>Hello, {userData?.username || 'User'} 👋</Title>
+          <Paragraph style={styles.subtitle}>Track your emotional health today</Paragraph>
         </Card>
 
-        {/* Today's Status */}
+        {/* Today Check-in */}
         {dashboardData?.today_entry ? (
-          <Card style={styles.statusCard}>
-            <Card.Content>
-              <Title>Today's Check-in</Title>
-              <View style={styles.moodContainer}>
-                <Text style={styles.moodEmoji}>
-                  {getMoodEmoji(dashboardData.today_entry.mood)}
-                </Text>
-                <Text style={styles.moodText}>
-                  Feeling {dashboardData.today_entry.mood}
-                </Text>
-              </View>
-              
-              {dashboardData.today_entry.risk_category && (
-                <View style={styles.riskContainer}>
-                  <Chip
-                    style={[
-                      styles.riskChip,
-                      { backgroundColor: getRiskColor(dashboardData.today_entry.risk_category) }
-                    ]}
-                    textStyle={{ color: 'white' }}
-                  >
-                    {dashboardData.today_entry.risk_category.toUpperCase()} RISK
-                  </Chip>
-                  <Text style={styles.riskMessage}>
-                    {getRiskMessage(dashboardData.today_entry.risk_category)}
-                  </Text>
-                </View>
-              )}
-            </Card.Content>
+          <Card style={styles.mainCard}>
+            <Title>Today's Mood</Title>
+            <View style={styles.moodRow}>
+              <Text style={styles.emoji}>{getMoodEmoji(dashboardData.today_entry.mood)}</Text>
+              <Text style={styles.moodText}>{dashboardData.today_entry.mood}</Text>
+            </View>
+
+            <Chip
+              style={[
+                styles.riskChip,
+                { backgroundColor: getRiskColor(dashboardData.today_entry.risk_category) },
+              ]}
+              textStyle={{ color: '#fff' }}
+            >
+              {dashboardData.today_entry.risk_category.toUpperCase()} RISK
+            </Chip>
           </Card>
         ) : (
-          <Card style={styles.checkInCard}>
-            <Card.Content>
-              <Title>No check-in today yet</Title>
-              <Paragraph>
-                How are you feeling? Take a moment to record your emotions.
-              </Paragraph>
-              <Button
-                mode="contained"
-                onPress={() => navigation.navigate('EmotionEntry')}
-                style={styles.checkInButton}
-              >
-                Check In Now
-              </Button>
-            </Card.Content>
+          <Card style={styles.mainCardAlt}>
+            <Title>No Check-in Today</Title>
+            <Paragraph>Log how you're feeling now.</Paragraph>
+            <Button mode="contained" onPress={() => navigation.navigate('EmotionEntry')} style={styles.btn}>
+              Check In
+            </Button>
           </Card>
         )}
 
-        {/* Streak */}
-        <Card style={styles.streakCard}>
-          <Card.Content>
-            <View style={styles.streakContainer}>
-              <View style={styles.streakItem}>
-                <Text style={styles.streakNumber}>{dashboardData?.streak || 0}</Text>
-                <Text style={styles.streakLabel}>Day Streak</Text>
-              </View>
-              <Divider style={styles.streakDivider} />
-              <View style={styles.streakItem}>
-                <Text style={styles.streakNumber}>
-                  {dashboardData?.week_moods?.length || 0}
-                </Text>
-                <Text style={styles.streakLabel}>Entries This Week</Text>
-              </View>
-            </View>
-          </Card.Content>
-        </Card>
+        {/* Stats */}
+        <View style={styles.statsRow}>
+          <Card style={styles.statCard}>
+            <Text style={styles.statNumber}>{dashboardData?.streak || 0}</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
+          </Card>
 
-        {/* Recent Risk Assessment */}
+          <Card style={styles.statCard}>
+            <Text style={styles.statNumber}>{dashboardData?.week_moods?.length || 0}</Text>
+            <Text style={styles.statLabel}>This Week</Text>
+          </Card>
+        </View>
+
+        {/* Assessment */}
         {dashboardData?.recent_assessment && (
           <Card style={styles.assessmentCard}>
-            <Card.Content>
-              <Title>Latest Assessment</Title>
-              <View style={styles.assessmentContainer}>
-                <Chip
-                  style={[
-                    styles.assessmentChip,
-                    { backgroundColor: getRiskColor(dashboardData.recent_assessment.risk_category) }
-                  ]}
-                  textStyle={{ color: 'white' }}
-                >
-                  {dashboardData.recent_assessment.risk_category.toUpperCase()}
-                </Chip>
-                <Text style={styles.assessmentScore}>
-                  Risk Score: {(dashboardData.recent_assessment.risk_score * 100).toFixed(1)}%
-                </Text>
-              </View>
-              
-              {dashboardData.recent_assessment.recommendations.length > 0 && (
-                <View style={styles.recommendationsContainer}>
-                  <Text style={styles.recommendationsTitle}>Recommendations:</Text>
-                  {dashboardData.recent_assessment.recommendations.slice(0, 3).map((rec, index) => (
-                    <Text key={index} style={styles.recommendationItem}>
-                      • {rec}
-                    </Text>
-                  ))}
-                </View>
-              )}
-            </Card.Content>
+            <Title>Latest Assessment</Title>
+            <View style={styles.assessmentRow}>
+              <Chip
+                style={[
+                  styles.assessmentChip,
+                  { backgroundColor: getRiskColor(dashboardData.recent_assessment.risk_category) },
+                ]}
+                textStyle={{ color: '#fff' }}
+              >
+                {dashboardData.recent_assessment.risk_category.toUpperCase()}
+              </Chip>
+              <Text style={styles.score}>
+                {(dashboardData.recent_assessment.risk_score * 100).toFixed(1)}%
+              </Text>
+            </View>
+
+            {dashboardData.recent_assessment.recommendations.slice(0, 3).map((rec, i) => (
+              <Text key={i} style={styles.recommendation}>• {rec}</Text>
+            ))}
           </Card>
         )}
 
-        {/* Quick Actions */}
-        <Card style={styles.actionsCard}>
-          <Card.Content>
-            <Title>Quick Actions</Title>
-            <List.Item
-              title="View Statistics"
-              description="Track your emotional patterns"
-              left={(props) => <List.Icon {...props} icon="chart-line" />}
-              onPress={() => navigation.navigate('Stats')}
-            />
-            <List.Item
-              title="Edit Profile"
-              description="Update your information"
-              left={(props) => <List.Icon {...props} icon="account-edit" />}
-              onPress={() => navigation.navigate('Profile')}
-            />
-            <List.Item
-              title="Logout"
-              description="Sign out of your account"
-              left={(props) => <List.Icon {...props} icon="logout" />}
-              onPress={handleLogout}
-            />
-          </Card.Content>
+        {/* Actions */}
+        <Card style={styles.actionCard}>
+          <List.Item title="Statistics" left={() => <List.Icon icon="chart-line" />} onPress={() => navigation.navigate('Stats')} />
+          <Divider />
+          <List.Item title="Profile" left={() => <List.Icon icon="account" />} onPress={() => navigation.navigate('Profile')} />
+          <Divider />
+          <List.Item title="Logout" left={() => <List.Icon icon="logout" />} onPress={handleLogout} />
         </Card>
+
+        <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Floating Action Button */}
       {!dashboardData?.today_entry && (
         <FAB
-          style={styles.fab}
           icon="plus"
           label="Check In"
+          style={styles.fab}
           onPress={() => navigation.navigate('EmotionEntry')}
         />
       )}
@@ -306,11 +245,20 @@ const HomeScreen = () => {
   );
 };
 
+export default HomeScreen;
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
+  container: { flex: 1, backgroundColor: '#F2F5FA' },
+
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  headerCard: {
+    margin: 16,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: '#6C63FF',
   },
+<<<<<<< HEAD
   appbar: {
     backgroundColor: '#6200ee',
   },
@@ -324,117 +272,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   welcomeCard: {
+=======
+  headerTitle: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
+  subtitle: { color: '#eee', marginTop: 4 },
+
+  mainCard: {
+    marginHorizontal: 16,
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
     marginBottom: 16,
-    elevation: 4,
+    padding: 20,
+    borderRadius: 20,
   },
-  welcomeTitle: {
-    fontSize: 24,
-    color: '#6200ee',
-  },
-  statusCard: {
+
+  mainCardAlt: {
+    marginHorizontal: 16,
     marginBottom: 16,
-    elevation: 4,
-  },
-  checkInCard: {
-    marginBottom: 16,
-    elevation: 4,
+    padding: 20,
+    borderRadius: 20,
     backgroundColor: '#E3F2FD',
   },
-  checkInButton: {
-    marginTop: 12,
-  },
-  moodContainer: {
+
+  moodRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 12 },
+  emoji: { fontSize: 48, marginRight: 12 },
+  moodText: { fontSize: 20, fontWeight: 'bold' },
+
+  riskChip: { alignSelf: 'flex-start' },
+
+  btn: { marginTop: 12 },
+
+  statsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+  },
+
+  statCard: {
+    width: width / 2.3,
+    padding: 20,
+    borderRadius: 18,
     alignItems: 'center',
-    marginVertical: 12,
   },
-  moodEmoji: {
-    fontSize: 40,
-    marginRight: 12,
-  },
-  moodText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  riskContainer: {
-    marginTop: 8,
-  },
-  riskChip: {
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  riskMessage: {
-    fontStyle: 'italic',
-    color: '#666',
-  },
-  streakCard: {
-    marginBottom: 16,
-    elevation: 4,
-    backgroundColor: '#F3E5F5',
-  },
-  streakContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  streakItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  streakNumber: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#6200ee',
-  },
-  streakLabel: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  streakDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#ddd',
-  },
+
+  statNumber: { fontSize: 28, fontWeight: 'bold', color: '#6C63FF' },
+  statLabel: { color: '#666' },
+
   assessmentCard: {
-    marginBottom: 16,
-    elevation: 4,
+    margin: 16,
+    padding: 20,
+    borderRadius: 20,
   },
-  assessmentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
+
+  assessmentRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 10 },
+  assessmentChip: { marginRight: 10 },
+  score: { fontSize: 18, fontWeight: 'bold' },
+
+  recommendation: { color: '#555', marginVertical: 2 },
+
+  actionCard: {
+    marginHorizontal: 16,
+    borderRadius: 20,
   },
-  assessmentChip: {
-    marginRight: 12,
-  },
-  assessmentScore: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  recommendationsContainer: {
-    marginTop: 12,
-  },
-  recommendationsTitle: {
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  recommendationItem: {
-    color: '#666',
-    marginBottom: 2,
-  },
-  actionsCard: {
-    marginBottom: 80, // Extra space for FAB
-    elevation: 4,
-  },
+
   fab: {
     position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#6200ee',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#6C63FF',
   },
 });
-
-export default HomeScreen;

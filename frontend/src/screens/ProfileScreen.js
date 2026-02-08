@@ -383,87 +383,122 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
   content: {
-    padding: 16,
-    paddingBottom: 32,
+    paddingHorizontal: 16,
+    paddingBottom: 40,
   },
+
   card: {
     marginBottom: 16,
-    elevation: 4,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
   },
+
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#6200ee',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#4F46E5',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
+
   avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: 'white',
+    fontSize: 30,
+    fontWeight: '700',
+    color: '#fff',
   },
+
   headerInfo: {
     flex: 1,
   },
+
   username: {
-    fontSize: 24,
-    color: '#333',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
   },
+
   userType: {
-    color: '#6200ee',
-    fontWeight: '500',
+    color: '#4F46E5',
+    fontSize: 14,
+    marginTop: 2,
   },
+
   memberSince: {
-    color: '#666',
+    color: '#6B7280',
     fontSize: 12,
+    marginTop: 2,
   },
+
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
+
   input: {
-    marginBottom: 16,
+    marginBottom: 12,
+    backgroundColor: '#fff',
   },
+
   buttonContainer: {
     flexDirection: 'row',
     gap: 12,
     marginTop: 8,
   },
+
   saveButton: {
     flex: 1,
+    borderRadius: 12,
   },
+
   cancelButton: {
     flex: 1,
+    borderRadius: 12,
   },
+
   appInfo: {
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 4,
+    color: '#111827',
   },
+
   appDescription: {
-    color: '#666',
+    color: '#6B7280',
     lineHeight: 20,
   },
+
   dangerCard: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
   },
+
   dangerTitle: {
-    color: '#C62828',
+    color: '#DC2626',
+    fontWeight: '700',
   },
+
   logoutButton: {
-    marginTop: 8,
-    borderColor: '#F44336',
+    marginTop: 12,
+    borderRadius: 12,
+    borderColor: '#DC2626',
   },
+
   deleteButton: {
     marginTop: 8,
   },
