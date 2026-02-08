@@ -24,8 +24,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { emotionAPI } from '../api/api';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const HomeScreen = () => {
 =======
+=======
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
 const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation, route }) => {
@@ -67,6 +70,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleLogout = async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
@@ -88,6 +92,8 @@ const HomeScreen = ({ navigation, route }) => {
             }
           },
 =======
+=======
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
     Alert.alert('Logout', 'Are you sure?', [
       { text: 'Cancel' },
       {
@@ -96,6 +102,9 @@ const HomeScreen = ({ navigation, route }) => {
         onPress: async () => {
           await AsyncStorage.multiRemove(['userToken', 'refreshToken', 'userData']);
           setUserToken(null);
+<<<<<<< HEAD
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
+=======
 >>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
         },
       },
@@ -257,6 +266,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 20,
     backgroundColor: '#6C63FF',
+<<<<<<< HEAD
   },
 <<<<<<< HEAD
   appbar: {
@@ -273,11 +283,17 @@ const styles = StyleSheet.create({
   },
   welcomeCard: {
 =======
+=======
+  },
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
   headerTitle: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
   subtitle: { color: '#eee', marginTop: 4 },
 
   mainCard: {
     marginHorizontal: 16,
+<<<<<<< HEAD
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
+=======
 >>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
     marginBottom: 16,
     padding: 20,

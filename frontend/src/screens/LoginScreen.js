@@ -25,6 +25,9 @@ const LoginScreen = () => {
 const LoginScreen = ({ navigation, route }) => {
   const { width } = useWindowDimensions();
 
+<<<<<<< HEAD
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
+=======
 >>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -46,6 +49,7 @@ const LoginScreen = ({ navigation, route }) => {
       await AsyncStorage.setItem('refreshToken', response.tokens.refresh);
       await AsyncStorage.setItem('userData', JSON.stringify(response.user));
 <<<<<<< HEAD
+<<<<<<< HEAD
       
       // Navigate to Home screen
       navigation.reset({
@@ -53,6 +57,8 @@ const LoginScreen = ({ navigation, route }) => {
         routes: [{ name: 'Home' }],
       });
 =======
+=======
+>>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
 
       setUserToken(response.tokens.access);
 >>>>>>> f9f3bfd3e67dfaec0765b84c2f14f1f2c01852e2
